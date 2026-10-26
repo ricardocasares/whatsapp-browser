@@ -79,6 +79,16 @@ self.onmessage = (e) => {
   else pending.push(cmd);
 };
 
+self.addEventListener('securitypolicyviolation', (e) => {
+  self.postMessage({ type: 'diag', message: 'Blocked by this site\'s Content-Security-Policy (worker): ' + e.violatedDirective + ' → ' + (e.blockedURI || 'inline') });
+});
+self.addEventListener('error', (e) => {
+  self.postMessage({ type: 'diag', message: 'Engine error: ' + (e.message || e.error || 'unknown') });
+});
+self.addEventListener('unhandledrejection', (e) => {
+  self.postMessage({ type: 'diag', message: 'Engine error: ' + (e.reason && e.reason.message || e.reason) });
+});
+
 (async () => {
   let state = '';
   try {
@@ -90,7 +100,14 @@ self.onmessage = (e) => {
   pending.unshift({ type: 'start', state, debug });
 
   const go = new Go();
-  const result = await loadWasm(go.importObject);
+  let result;
+  try {
+    result = await loadWasm(go.importObject);
+  } catch (e) {
+    self.postMessage({ type: 'diag', message: 'Could not load the WebAssembly module: ' + (e && e.message || e) });
+    self.postMessage({ type: 'status', status: 'disconnected', reason: 'engine failed to load' });
+    return;
+  }
   go.run(result.instance).then(() => {
     self.postMessage({ type: 'status', status: 'disconnected', reason: 'wasm module exited' });
   });

@@ -11,13 +11,21 @@ const state = {
   active: null,
   qr: null,
   reason: '',
+  diag: [],
 };
+function diag(msg) {
+  console.error('[diag]', msg);
+  if (!state.diag.includes(msg)) state.diag.push(msg);
+  if (state.diag.length > 6) state.diag.shift();
+}
 
 const $ = (s) => document.querySelector(s);
 const el = {
   qrScreen: $('#qr-screen'),
   qrImg: $('#qr-img'),
   qrHint: $('#qr-hint'),
+  qrError: $('#qr-error'),
+  qrRetry: $('#qr-retry'),
   app: $('#app'),
   chatList: $('#chat-list'),
   search: $('#search'),
@@ -175,19 +183,25 @@ function hue(s) {
 // ---- rendering ----
 function render() {
   renderStatus();
-  el.qrScreen.classList.toggle('hidden', !(state.status === 'qr' || state.status === 'loading'));
-  el.app.classList.toggle('hidden', state.status === 'qr' || state.status === 'loading');
-  if (state.status === 'qr') {
-    if (state.qr) {
-      el.qrImg.src = state.qr;
-      el.qrImg.classList.remove('hidden');
-      el.qrHint.textContent = 'Open WhatsApp on your phone → Linked devices → Link a device, then scan this code.';
-    } else {
-      el.qrHint.textContent = 'Generating QR code…';
-    }
+  const onboarding = !state.me && ['qr', 'loading', 'disconnected', 'logged_out'].includes(state.status);
+  el.qrScreen.classList.toggle('hidden', !onboarding);
+  el.app.classList.toggle('hidden', onboarding);
+  el.qrRetry.classList.toggle('hidden', !(onboarding && state.status === 'disconnected'));
+  el.qrError.classList.toggle('hidden', !state.diag.length);
+  el.qrError.textContent = state.diag.join('\n');
+  if (state.status === 'qr' && state.qr) {
+    el.qrImg.src = state.qr;
+    el.qrImg.classList.remove('hidden');
+    el.qrHint.textContent = 'Open WhatsApp on your phone → Linked devices → Link a device, then scan this code.';
+  } else if (state.status === 'qr') {
+    el.qrImg.classList.add('hidden');
+    el.qrHint.textContent = 'Connected to WhatsApp, waiting for a QR code…';
   } else if (state.status === 'loading') {
     el.qrImg.classList.add('hidden');
     el.qrHint.textContent = 'Loading WhatsApp engine (WebAssembly)…';
+  } else if (onboarding) {
+    el.qrImg.classList.add('hidden');
+    el.qrHint.textContent = 'Could not connect to WhatsApp' + (state.reason ? ': ' + state.reason : '') + '.';
   }
   renderChatList();
   renderConversation();
@@ -296,11 +310,28 @@ function openChat(jid) {
   uiSave();
 }
 
+// ---- diagnostics: surface anything that prevents the engine from starting ----
+worker.onerror = (e) => {
+  diag('Worker failed: ' + (e.message || 'unknown error') + (e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : ''));
+  if (state.status === 'loading') { state.status = 'disconnected'; state.reason = 'engine failed to start'; }
+  render();
+};
+document.addEventListener('securitypolicyviolation', (e) => {
+  diag('Blocked by this site\'s Content-Security-Policy: ' + e.violatedDirective + ' → ' + (e.blockedURI || 'inline'));
+  render();
+});
+if (!window.Worker) diag('Web Workers are not available in this browser.');
+if (!window.WebAssembly) diag('WebAssembly is not available in this browser.');
+if (!window.indexedDB) diag('IndexedDB is not available; the session cannot be saved.');
+
 // ---- events from worker ----
 let seq = 0;
 worker.onmessage = (e) => {
   const evt = e.data;
   switch (evt.type) {
+    case 'diag':
+      diag(evt.message);
+      break;
     case 'ready':
       break;
     case 'status':
@@ -411,6 +442,7 @@ worker.onmessage = (e) => {
       break;
     case 'error':
       console.error('worker error:', evt.error);
+      diag(evt.error);
       break;
   }
   render();
@@ -458,6 +490,7 @@ el.logout.onclick = () => {
   if (confirm('Log out and unlink this browser from your phone?')) send({ type: 'logout' });
 };
 el.reconnect.onclick = () => send({ type: 'reconnect' });
+el.qrRetry.onclick = () => { state.diag = []; state.status = 'loading'; render(); send({ type: 'reconnect' }); };
 el.newChat.onclick = () => {
   const input = prompt('Phone number with country code (e.g. 14155551234), or a full JID:');
   if (!input) return;

@@ -31,6 +31,8 @@
   .qr-card .left { flex: 1 1 280px; }
   #qr-img { width: 264px; height: 264px; border-radius: 8px; background: #fff; padding: 8px; }
   #qr-hint { color: var(--muted); font-size: 13px; margin-top: 12px; }
+  #qr-error { background: rgba(241, 92, 109, .12); color: #f15c6d; border-left: 3px solid #f15c6d; padding: 10px 12px; border-radius: 6px; font-size: 12.5px; white-space: pre-wrap; word-break: break-word; margin: 8px 0; font-family: ui-monospace, Menlo, monospace; }
+  #qr-retry { background: var(--accent); color: #fff; padding: 8px 14px; border-radius: 8px; font-weight: 500; }
   .qr-right { display: flex; flex-direction: column; align-items: center; min-width: 264px; }
   .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 112px 0; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -105,6 +107,8 @@
           <li>Point your phone at this screen to scan the QR code</li>
         </ol>
         <p id="qr-hint"></p>
+        <pre id="qr-error" class="hidden"></pre>
+        <button id="qr-retry" class="hidden">Try again</button>
       </div>
       <div class="qr-right">
         <img id="qr-img" class="hidden" alt="QR code">
