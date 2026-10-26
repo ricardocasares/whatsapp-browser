@@ -32,7 +32,12 @@ it serves files only. Examples:
 cd web && python3 -m http.server 8787        # http://127.0.0.1:8787/
 ```
 
-or push `web/` to GitHub Pages, Netlify, S3, etc.
+or push `web/` to GitHub Pages, Netlify, S3, etc. `./deploy-pages.sh` does
+the GitHub Pages variant end to end (it creates a public repo on first run).
+
+Hosts with small per-file limits can serve the module in pieces: split
+`main.wasm`, name the pieces `*.wasm`, and set `self.WASM_PARTS = [...]` at the
+top of `worker.js`.
 
 Add `?debug=1` to the URL to get whatsmeow debug logs in the worker console.
 
