@@ -1,0 +1,1 @@
+var e=()=>{throw Error(`http is not available in the browser; use fetch`)},t=e,n=e,r=class{},i={request:t,get:n,Agent:r};export{r as Agent,i as default,n as get,t as request};
