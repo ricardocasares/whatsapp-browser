@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WhatsApp Baileys</title>
+<style>
+  :root { --bg:#111b21; --panel:#202c33; --border:#2a3942; --text:#e9edef; --muted:#8696a0; --accent:#00a884; --out:#005c4b; --in:#202c33; --chat:#0b141a; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg:#f0f2f5; --panel:#fff; --border:#e9edef; --text:#111b21; --muted:#667781; --out:#d9fdd3; --in:#fff; --chat:#efeae2; } }
+  * { box-sizing: border-box; } html, body { height: 100%; margin: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; }
+  .hidden { display: none !important; } .muted { color: var(--muted); padding: 16px; font-size: 14px; }
+  #qr-screen { height: 100%; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .card { background: var(--panel); border-radius: 12px; padding: 32px; max-width: 720px; width: 100%; display: flex; gap: 32px; align-items: center; flex-wrap: wrap; }
+  .card .left { flex: 1 1 260px; } .card h1 { margin: 0 0 8px; font-size: 22px; font-weight: 500; } .card p { color: var(--muted); }
+  #qr-canvas { background: #fff; padding: 8px; border-radius: 8px; }
+  #qr-error { background: rgba(241,92,109,.12); color: #f15c6d; border-left: 3px solid #f15c6d; padding: 10px 12px; border-radius: 6px; font-size: 12.5px; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, Menlo, monospace; }
+  #app { height: 100%; display: grid; grid-template-columns: minmax(260px, 30%) 1fr; }
+  #sidebar { border-right: 1px solid var(--border); background: var(--panel); display: flex; flex-direction: column; min-width: 0; }
+  #top { display: flex; align-items: center; gap: 8px; padding: 12px 16px; min-height: 60px; } #me { flex: 1; font-weight: 500; }
+  #status { font-size: 12px; color: var(--muted); padding: 4px 16px; border-bottom: 1px solid var(--border); }
+  button { background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 6px 10px; border-radius: 6px; font-size: 14px; } button:hover { color: var(--text); background: var(--border); }
+  #chat-list { overflow-y: auto; flex: 1; } .chat { padding: 10px 16px; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; }
+  .chat span { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .chat.active, .chat:hover { background: var(--border); }
+  #main { display: flex; flex-direction: column; min-width: 0; background: var(--chat); }
+  #chat-header { padding: 16px; background: var(--panel); font-weight: 500; min-height: 60px; }
+  #messages { flex: 1; overflow-y: auto; padding: 16px 6%; display: flex; flex-direction: column; gap: 4px; }
+  .msg { max-width: 70%; padding: 6px 10px; border-radius: 8px; white-space: pre-wrap; word-wrap: break-word; } .msg.in { background: var(--in); align-self: flex-start; } .msg.out { background: var(--out); align-self: flex-end; }
+  .msg .time { font-size: 11px; color: var(--muted); text-align: right; } .msg .sender { font-size: 12px; color: #53bdeb; font-weight: 500; }
+  #composer { display: flex; gap: 8px; padding: 10px 16px; background: var(--panel); } #input { flex: 1; border: none; border-radius: 8px; padding: 10px 12px; font: inherit; background: var(--bg); color: var(--text); outline: none; }
+  #send { background: var(--accent); color: #fff; font-weight: 500; }
+  @media (max-width: 720px) { #app { grid-template-columns: 1fr; } #main { display: none; } }
+</style>
+</head>
+<body>
+  <div id="qr-screen"><div class="card">
+    <div class="left"><h1>WhatsApp in the browser, Baileys edition</h1><p>No server. The Baileys JavaScript library runs in this page and connects straight to WhatsApp.</p><p id="qr-hint"></p><pre id="qr-error" class="hidden"></pre></div>
+    <canvas id="qr-canvas" class="hidden"></canvas>
+  </div></div>
+  <div id="app" class="hidden">
+    <div id="sidebar"><div id="top"><span id="me"></span><button id="logout">Log out</button></div><div id="status"></div><div id="chat-list"></div></div>
+    <div id="main"><div id="chat-header"></div><div id="messages"></div><div id="composer" class="hidden"><input id="input" placeholder="Type a message"><button id="send">Send</button></div></div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

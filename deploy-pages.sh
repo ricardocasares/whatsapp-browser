@@ -9,6 +9,7 @@ NAME=$(git config user.name || echo "deploy")
 EMAIL=$(git config user.email || echo "deploy@localhost")
 
 ./build.sh
+if [ -d baileys/node_modules ]; then (cd baileys && npm run build >/dev/null); fi
 
 if ! gh repo view "$OWNER/$REPO" >/dev/null 2>&1; then
   gh repo create "$REPO" --public --description "WhatsApp client running entirely in the browser (whatsmeow compiled to WebAssembly)"
@@ -18,6 +19,7 @@ git push -u origin main
 
 TMP=$(mktemp -d)
 cp web/* "$TMP"/
+if [ -d baileys/dist ]; then mkdir -p "$TMP/baileys" && cp -R baileys/dist/. "$TMP/baileys/"; fi
 touch "$TMP/.nojekyll"
 (
   cd "$TMP"
@@ -33,3 +35,4 @@ gh api -X POST "repos/$OWNER/$REPO/pages" -f "source[branch]=gh-pages" -f "sourc
 
 echo "Deployed. Pages usually goes live within a minute at:"
 echo "https://$OWNER.github.io/$REPO/"
+[ -d baileys/dist ] && echo "https://$OWNER.github.io/$REPO/baileys/"

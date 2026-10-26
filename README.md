@@ -72,6 +72,11 @@ QR codes are renewed automatically when WhatsApp expires them.
   fix in its wasm build (see `PATCHED.md` there), wired in with a `replace`
   directive in `go.mod`
 
+## Baileys prototype
+
+`baileys/` holds a second, JavaScript-only prototype built on Baileys. See
+`baileys/README.md`. The deploy script publishes it under `/baileys/`.
+
 ## Notes
 
 - WhatsApp's WebSocket endpoint does not enforce the `Origin` header, which is
